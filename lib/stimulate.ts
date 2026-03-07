@@ -124,7 +124,7 @@ function createPhysicsModel(ball: BallFlat, pattern: Pattern, bowler: BowlerInpu
   );
 
   const path: Array<{ ft: number; board: number }> = [];
-  const hookStartFt = clamp(skidLength + 2.5, 14, 55);
+  const hookStartFt = clamp((skidLength + bowler.breakpointDistanceFt) / 2, 14, 55);
 
   for (let ft = 0; ft <= 60; ft += 1) {
     let board = target;
@@ -207,6 +207,7 @@ export function simulatePath(
     startingBoard: clamp(line.feetBoard, 0, 39),
     targetBoard: clamp(line.targetBoard, 0, 39),
     breakpointBoardIntent: 8,
+    breakpointDistanceFt: 42,
     oilPatternType: pattern.ratio === "high" ? "house" : "sport",
     laneSurface: "synthetic"
   };

@@ -62,6 +62,7 @@ export type BowlerInput = {
   startingBoard: number;
   targetBoard: number;
   breakpointBoardIntent: number;
+  breakpointDistanceFt: number;
   oilPatternType: "house" | "sport" | "specific";
   laneSurface: "synthetic" | "wood";
 };
