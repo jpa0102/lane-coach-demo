@@ -44,7 +44,7 @@ function smoothPath(points: Array<{ ft: number; board: number }>) {
   return d;
 }
 
-export function LaneViz({ result, handedness = "right", startBoard, targetBoard, breakpointBoard, breakpointDistanceFt }: Props) {
+export function LaneViz({ result, handedness = "right", startBoard, targetBoard }: Props) {
   const pocketBoard = handedness === "right" ? 17 : 22;
 
   return (
@@ -104,12 +104,27 @@ export function LaneViz({ result, handedness = "right", startBoard, targetBoard,
               <path d={smoothPath(result.ball_path)} stroke="rgba(34,211,238,0.5)" strokeWidth="8" fill="none" filter="url(#glow)" />
               <path d={smoothPath(result.ball_path)} stroke="rgba(220,248,255,0.96)" strokeWidth="3" fill="none" />
 
-              <circle cx={mapX(result.breakpoint_board)} cy={mapY(breakpointDistanceFt ?? 45)} r="7" fill="rgba(239,68,68,0.95)" />
-              <text x={mapX(result.breakpoint_board) + 10} y={mapY((breakpointDistanceFt ?? 45)) - 8} fontSize="11" fill="rgba(255,210,210,0.95)">BP</text>
+              <circle cx={mapX(result.breakpoint_board)} cy={mapY(result.breakpoint_distance_ft)} r="7" fill="rgba(239,68,68,0.95)" />
+              <text x={mapX(result.breakpoint_board) + 10} y={mapY(result.breakpoint_distance_ft) - 8} fontSize="11" fill="rgba(255,210,210,0.95)">
+                BP
+              </text>
 
               <circle cx={mapX(pocketBoard)} cy={mapY(60)} r="6" fill="rgba(16,185,129,0.95)" />
-              <text x={mapX(pocketBoard) + 9} y={mapY(60) - 6} fontSize="11" fill="rgba(167,243,208,0.95)">Pocket</text>
+              <text x={mapX(pocketBoard) + 9} y={mapY(60) - 6} fontSize="11" fill="rgba(167,243,208,0.95)">
+                Pocket
+              </text>
             </>
+          )}
+
+          {typeof startBoard === "number" && (
+            <text x={mapX(startBoard) + 8} y={mapY(1) - 8} fontSize="11" fill="rgba(255,255,255,0.8)">
+              Start
+            </text>
+          )}
+          {typeof targetBoard === "number" && (
+            <text x={mapX(targetBoard) + 8} y={mapY(15) - 8} fontSize="11" fill="rgba(255,255,255,0.75)">
+              Target
+            </text>
           )}
 
           {typeof startBoard === "number" && <text x={mapX(startBoard) + 8} y={mapY(1) - 8} fontSize="11" fill="rgba(255,255,255,0.8)">Start</text>}

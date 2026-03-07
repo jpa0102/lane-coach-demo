@@ -18,7 +18,7 @@ export default function Arsenal() {
   const catalog = flatCatalog as BallFlat[];
   const [q, setQ] = useState("");
   const [limit, setLimit] = useState(80);
-  const [arsenal, setArsenal] = useState(getArsenal());
+  const [arsenal, setArsenal] = useState([] as ReturnType<typeof getArsenal>);
 
   useEffect(() => setArsenal(getArsenal()), []);
 

@@ -57,12 +57,8 @@ export type BowlerInput = {
   papYInches: number;
   ballSpeedMph: number;
   revRateRpm: number;
-  axisTiltDeg: number;
-  axisRotationDeg: number;
   startingBoard: number;
   targetBoard: number;
-  breakpointBoardIntent: number;
-  breakpointDistanceFt: number;
   oilPatternType: "house" | "sport" | "specific";
   laneSurface: "synthetic" | "wood";
 };
@@ -70,6 +66,7 @@ export type BowlerInput = {
 export type PhysicsResult = {
   skid_length_ft: number;
   breakpoint_board: number;
+  breakpoint_distance_ft: number;
   entry_angle_degrees: number;
   ball_path: Array<{ ft: number; board: number }>;
   reaction_shape: "arc" | "skid-snap" | "skid-flip" | "straight";
