@@ -327,7 +327,7 @@ export default function Simulation() {
                 </Surface>
               )}
             </div>
-          </div>
+          </>
         )}
       </div>
     </>
