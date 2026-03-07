@@ -16,6 +16,10 @@ type SimInputs = {
   handedness: "right" | "left";
   standBoard: number;
   targetBoard: number;
+  breakpointBoard: number;
+  breakpointDistanceFt: number;
+  axisRotationDeg: number;
+  axisTiltDeg: number;
   surfaceOverride: string;
   laneTransitionState: string;
 };
@@ -28,6 +32,10 @@ const defaultInputs: SimInputs = {
   handedness: "right",
   standBoard: 25,
   targetBoard: 15,
+  breakpointBoard: 8,
+  breakpointDistanceFt: 42,
+  axisRotationDeg: 50,
+  axisTiltDeg: 14,
   surfaceOverride: "",
   laneTransitionState: ""
 };
@@ -45,6 +53,8 @@ function validateInputs(i: SimInputs) {
   if (i.revRateRpm < 150 || i.revRateRpm > 600) errors.push("Rev rate must be 150–600 rpm.");
   if (i.standBoard < 1 || i.standBoard > 39) errors.push("Stand board must be 1–39.");
   if (i.targetBoard < 1 || i.targetBoard > 39) errors.push("Target board must be 1–39.");
+  if (i.breakpointBoard < 1 || i.breakpointBoard > 39) errors.push("Breakpoint board must be 1–39.");
+  if (i.breakpointDistanceFt < 35 || i.breakpointDistanceFt > 50) errors.push("Breakpoint distance must be 35–50 ft.");
   return errors;
 }
 
@@ -146,8 +156,12 @@ export default function Simulation() {
       papYInches: 0.5,
       ballSpeedMph: inputs.ballSpeedMph,
       revRateRpm: inputs.revRateRpm,
+      axisTiltDeg: inputs.axisTiltDeg,
+      axisRotationDeg: inputs.axisRotationDeg,
       startingBoard: inputs.standBoard,
       targetBoard: inputs.targetBoard,
+      breakpointBoardIntent: inputs.breakpointBoard,
+      breakpointDistanceFt: inputs.breakpointDistanceFt,
       oilPatternType: selectedPattern.ratio === "high" ? "house" : "sport",
       laneSurface: "synthetic"
     };
@@ -158,14 +172,12 @@ export default function Simulation() {
     setStaleResult(false);
   }
 
-  const readPhase =
-    !result ? "—" : result.breakpoint_distance_ft < 40 ? "early" : result.breakpoint_distance_ft < 46 ? "mid" : "late";
-  const shapeNote =
-    !result
-      ? "—"
-      : result.reaction_shape === "arc" || result.reaction_shape === "straight"
-        ? "smooth"
-        : "angular";
+  const readPhase = !result ? "—" : result.skid_length_ft < 35 ? "early" : result.skid_length_ft < 42 ? "mid" : "late";
+  const shapeNote = !result
+    ? "—"
+    : result.reaction_shape === "arc" || result.reaction_shape === "straight"
+      ? "smooth"
+      : "angular";
 
   return (
     <>
@@ -175,7 +187,7 @@ export default function Simulation() {
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Ball Simulator</h1>
             <p className="mt-2 text-sm text-zinc-300 max-w-2xl">
-              Configure shot conditions, then press Simulate to generate calculated breakpoint, lane trace, and coach insights.
+              Configure ball and shot conditions, then press Simulate to generate a lane tracer and coach summary.
             </p>
           </div>
           <LinkButton href="/arsenal">Back to Arsenal</LinkButton>
@@ -191,7 +203,7 @@ export default function Simulation() {
         ) : (
           <div className="mt-6 grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-4 items-start">
             <Surface>
-              <SectionTitle title="Simulator Inputs" subtitle="Required fields only. Breakpoint is auto-calculated by the simulator." />
+              <SectionTitle title="Simulator Inputs" subtitle="Complete required fields, then run simulation." />
 
               <div className="mt-4 space-y-4">
                 <div>
@@ -243,16 +255,16 @@ export default function Simulation() {
                   <label className="text-xs text-zinc-400">Handedness *</label>
                   <div className="mt-1 grid grid-cols-2 gap-2">
                     <button
-                      className={inputs.handedness === "left" ? "lc-btn-primary" : "lc-btn-ghost"}
-                      onClick={() => updateInput("handedness", "left")}
-                    >
-                      Left-handed
-                    </button>
-                    <button
                       className={inputs.handedness === "right" ? "lc-btn-primary" : "lc-btn-ghost"}
                       onClick={() => updateInput("handedness", "right")}
                     >
                       Right-handed
+                    </button>
+                    <button
+                      className={inputs.handedness === "left" ? "lc-btn-primary" : "lc-btn-ghost"}
+                      onClick={() => updateInput("handedness", "left")}
+                    >
+                      Left-handed
                     </button>
                   </div>
                 </div>
@@ -266,6 +278,14 @@ export default function Simulation() {
                     <label className="text-xs text-zinc-400">Target board *</label>
                     <input className="lc-input mt-1" type="number" min={1} max={39} value={inputs.targetBoard} onChange={(e) => updateInput("targetBoard", Number(e.target.value))} />
                   </div>
+                  <div>
+                    <label className="text-xs text-zinc-400">Breakpoint board *</label>
+                    <input className="lc-input mt-1" type="number" min={1} max={39} value={inputs.breakpointBoard} onChange={(e) => updateInput("breakpointBoard", Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-400">Breakpoint distance *</label>
+                    <input className="lc-input mt-1" type="number" min={35} max={50} value={inputs.breakpointDistanceFt} onChange={(e) => updateInput("breakpointDistanceFt", Number(e.target.value))} />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-75">
@@ -276,6 +296,14 @@ export default function Simulation() {
                   <div>
                     <label className="text-xs text-zinc-500">Lane transition state (coming soon)</label>
                     <input className="lc-input mt-1" value={inputs.laneTransitionState} placeholder="fresh / transition / burn" disabled />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500">Axis rotation</label>
+                    <input className="lc-input mt-1" type="number" min={0} max={90} value={inputs.axisRotationDeg} onChange={(e) => updateInput("axisRotationDeg", Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500">Axis tilt</label>
+                    <input className="lc-input mt-1" type="number" min={0} max={25} value={inputs.axisTiltDeg} onChange={(e) => updateInput("axisTiltDeg", Number(e.target.value))} />
                   </div>
                 </div>
 
@@ -313,23 +341,25 @@ export default function Simulation() {
                   handedness={submittedInputs?.handedness ?? inputs.handedness}
                   startBoard={submittedInputs?.standBoard}
                   targetBoard={submittedInputs?.targetBoard}
+                  breakpointBoard={submittedInputs?.breakpointBoard}
+                  breakpointDistanceFt={submittedInputs?.breakpointDistanceFt}
                 />
               )}
 
               {!result ? (
                 <Surface>
-                  <SectionTitle title="Simulation Output" subtitle="Analysis appears only after clicking Simulate." />
+                  <SectionTitle title="Simulation Output" subtitle="Analysis appears after you click Simulate." />
                 </Surface>
               ) : (
                 <Surface>
-                  <SectionTitle title="Coach Summary" subtitle="Calculated reaction profile and lane-read outputs." />
+                  <SectionTitle title="Coach Summary" subtitle="Shot setup and reaction readout." />
                   <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Selected ball</div><div>{selectedBall?.manufacturer} {selectedBall?.model}</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Pattern</div><div>{selectedPattern?.name}</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Speed / Revs</div><div>{submittedInputs?.ballSpeedMph} mph • {submittedInputs?.revRateRpm} rpm</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Handedness</div><div>{submittedInputs?.handedness === "left" ? "Left" : "Right"}</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Stand / Target</div><div>{submittedInputs?.standBoard} → {submittedInputs?.targetBoard}</div></div>
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Calculated breakpoint</div><div>{result.breakpoint_board} @ {result.breakpoint_distance_ft}ft</div></div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Breakpoint plan</div><div>{submittedInputs?.breakpointBoard} @ {submittedInputs?.breakpointDistanceFt}ft</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Reaction</div><div>{result.reaction_shape} • {shapeNote}</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Read + entry</div><div>{readPhase} read • {result.pocket_entry}</div></div>
                   </div>
@@ -337,7 +367,7 @@ export default function Simulation() {
                   <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-4">
                     <div className="text-xs text-cyan-200">Quick reaction summary</div>
                     <div className="mt-1 text-sm text-zinc-200">
-                      Skid: {result.skid_length_ft}ft • Entry angle: {result.entry_angle_degrees}° • Breakpoint: {result.breakpoint_board} @ {result.breakpoint_distance_ft}ft
+                      Skid: {result.skid_length_ft}ft • Entry angle: {result.entry_angle_degrees}° • Breakpoint: {result.breakpoint_board}
                     </div>
                     <div className="mt-2 text-sm text-zinc-300">{result.recommendation}</div>
                   </div>
