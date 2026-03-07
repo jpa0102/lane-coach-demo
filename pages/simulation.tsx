@@ -136,7 +136,7 @@ export default function Simulation() {
   const ball = myCatalogBalls.find((b) => makeKey(b) === inputs.ballKey);
   const pattern = patterns.find((p) => p.id === inputs.patternId);
 
-  function setInput<K extends keyof SimInputs>(key: K, value: SimInputs[K]) {
+  function setInput(key: keyof SimInputs, value: SimInputs[keyof SimInputs]) {
     setInputs((prev) => ({ ...prev, [key]: value }));
     if (result) setStale(true);
   }
