@@ -1,0 +1,26 @@
+[
+  {
+    "id": "pat_cheetah_demo",
+    "name": "PBA Cheetah (Demo)",
+    "lengthFt": 35,
+    "ratio": "high",
+    "volume": "low",
+    "shape": "short"
+  },
+  {
+    "id": "pat_chameleon_demo",
+    "name": "PBA Chameleon (Demo)",
+    "lengthFt": 39,
+    "ratio": "medium",
+    "volume": "medium",
+    "shape": "medium"
+  },
+  {
+    "id": "pat_shark_demo",
+    "name": "PBA Shark (Demo)",
+    "lengthFt": 44,
+    "ratio": "low",
+    "volume": "high",
+    "shape": "long"
+  }
+]
