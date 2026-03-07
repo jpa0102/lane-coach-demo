@@ -6,8 +6,6 @@ type Props = {
   handedness?: "right" | "left";
   startBoard?: number;
   targetBoard?: number;
-  breakpointBoard?: number;
-  breakpointDistanceFt?: number;
 };
 
 const W = 460;

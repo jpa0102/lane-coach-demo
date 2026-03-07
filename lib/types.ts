@@ -47,7 +47,7 @@ export type Pattern = {
 };
 
 export type Line = {
-  feetBoard: number;   // 0-39
+  feetBoard: number; // 0-39
   targetBoard: number; // 0-39
 };
 
