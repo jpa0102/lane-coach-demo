@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Nav } from "../components/Nav";
+import { Button, LinkButton, MetricTile, SectionTitle, Surface } from "../components/ui";
 import flatCatalog from "../data/ballCatalogFlat.json";
 import { BallFlat } from "../lib/types";
 import { addToArsenal, clearArsenal, getArsenal, removeFromArsenal } from "../lib/store";
@@ -13,15 +14,6 @@ function safeDate(b: BallFlat) {
   return b.usbc_approved_on_date ?? b.usbc_approved_on_raw ?? "unknown";
 }
 
-const inputClass =
-  "w-full sm:w-auto px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white outline-none focus:ring-2 focus:ring-cyan-400/40";
-
-const buttonPrimary =
-  "px-4 py-2 rounded-xl bg-white text-zinc-950 font-medium hover:opacity-90 transition";
-
-const buttonGhost =
-  "px-4 py-2 rounded-xl bg-white/10 text-white border border-white/10 hover:bg-white/15 transition";
-
 export default function Arsenal() {
   const catalog = flatCatalog as BallFlat[];
   const [q, setQ] = useState("");
@@ -32,9 +24,7 @@ export default function Arsenal() {
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
-    const base = t
-      ? catalog.filter((b) => `${b.manufacturer} ${b.model}`.toLowerCase().includes(t))
-      : catalog;
+    const base = t ? catalog.filter((b) => `${b.manufacturer} ${b.model}`.toLowerCase().includes(t)) : catalog;
     return base.slice(0, limit);
   }, [q, catalog, limit]);
 
@@ -42,62 +32,55 @@ export default function Arsenal() {
     const index = new Map<string, BallFlat>();
     for (const b of catalog) index.set(makeKey(b), b);
 
-    return arsenal
-      .map((ub) => ({ ub, c: index.get(ub.catalogKey) }))
-      .filter((x) => x.c);
+    return arsenal.map((ub) => ({ ub, c: index.get(ub.catalogKey) })).filter((x) => x.c);
   }, [arsenal, catalog]);
 
   return (
     <>
       <Nav />
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
+      <div className="lc-shell">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Arsenal</h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Search your USBC-approved catalog and add balls to your arsenal.
+            <h1 className="text-3xl font-semibold tracking-tight">Arsenal Intelligence Hub</h1>
+            <p className="mt-2 text-sm text-zinc-300 max-w-2xl">
+              Curate your premium bag from the USBC-approved catalog and stage your simulation lineup.
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <div className="text-xs text-zinc-400">
-              Loaded <span className="text-zinc-200 font-medium">{catalog.length.toLocaleString()}</span> balls
-            </div>
-            <button
-              className={buttonGhost}
-              onClick={() => {
-                clearArsenal();
-                setArsenal(getArsenal());
-              }}
-            >
-              Clear Arsenal
-            </button>
-          </div>
+          <Button
+            onClick={() => {
+              clearArsenal();
+              setArsenal(getArsenal());
+            }}
+          >
+            Clear Arsenal
+          </Button>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Database */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <div className="text-sm font-semibold">Ball Database</div>
-                <div className="text-xs text-zinc-400">Showing {Math.min(limit, catalog.length)} results max</div>
-              </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <MetricTile label="Catalog" value={catalog.length.toLocaleString()} accent="text-cyan-200" />
+          <MetricTile label="My Arsenal" value={String(myBalls.length)} accent="text-emerald-200" />
+          <MetricTile label="Query Results" value={String(filtered.length)} />
+        </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <input
-                  className={inputClass}
-                  placeholder="Search brand or model (e.g., Storm, Widow, Motiv)"
-                  value={q}
-                  onChange={(e) => {
-                    setQ(e.target.value);
-                    setLimit(80);
-                  }}
-                />
-              </div>
+        <div className="mt-6 grid grid-cols-1 xl:grid-cols-[1.25fr_.9fr] gap-4 items-start">
+          <Surface>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <SectionTitle
+                title="Ball Database"
+                subtitle={`Showing up to ${Math.min(limit, catalog.length)} entries for fast browsing.`}
+              />
+              <input
+                className="lc-input w-full sm:w-[340px]"
+                placeholder="Search brand or model (Storm, Widow, Motiv...)"
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setLimit(80);
+                }}
+              />
             </div>
 
-            <div className="mt-4 divide-y divide-white/10">
+            <div className="mt-4 max-h-[64vh] overflow-auto pr-1 divide-y divide-white/10">
               {filtered.map((b) => {
                 const key = makeKey(b);
                 return (
@@ -106,47 +89,29 @@ export default function Arsenal() {
                       <div className="text-sm font-semibold truncate">
                         {b.manufacturer} <span className="text-zinc-200">{b.model}</span>
                       </div>
-
-                      <div className="mt-1 text-xs text-zinc-400">
-                        USBC: {safeDate(b)}
-                      </div>
-
-                      <div className="mt-1 text-xs text-zinc-400">
+                      <div className="mt-1 text-xs text-zinc-400">USBC: {safeDate(b)}</div>
+                      <div className="mt-1 text-xs text-zinc-400 truncate">
                         Cover: {b.coverstock_type ?? "—"} • Core: {b.core_type ?? "—"} • RG: {b.rg ?? "—"} • Diff: {b.differential ?? "—"}
                       </div>
                     </div>
-
-                    <button className={buttonPrimary} onClick={() => setArsenal(addToArsenal(key))}>
+                    <Button tone="primary" onClick={() => setArsenal(addToArsenal(key))}>
                       Add
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-2">
-              <div className="text-xs text-zinc-400">
-                Tip: Search is instant. We cap results for performance.
-              </div>
-              <button
-                className={buttonGhost}
-                onClick={() => setLimit((n) => Math.min(n + 120, catalog.length))}
-              >
-                Load more
-              </button>
+              <p className="text-xs text-zinc-500">Instant search is capped for UI performance.</p>
+              <Button onClick={() => setLimit((n) => Math.min(n + 120, catalog.length))}>Load More</Button>
             </div>
-          </div>
+          </Surface>
 
-          {/* My Arsenal */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+          <Surface>
             <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold">My Arsenal</div>
-                <div className="text-xs text-zinc-400">{myBalls.length} balls</div>
-              </div>
-              <a href="/simulation" className={buttonGhost}>
-                Go to Simulation
-              </a>
+              <SectionTitle title="My Arsenal" subtitle="Balls saved for simulation and pattern planning." />
+              <LinkButton href="/simulation">Open Simulation</LinkButton>
             </div>
 
             <div className="mt-4">
@@ -165,19 +130,13 @@ export default function Arsenal() {
                         <div className="mt-1 text-xs text-zinc-400">USBC: {safeDate(c!)}</div>
                       </div>
 
-                      <button className={buttonGhost} onClick={() => setArsenal(removeFromArsenal(ub.userBallId))}>
-                        Remove
-                      </button>
+                      <Button onClick={() => setArsenal(removeFromArsenal(ub.userBallId))}>Remove</Button>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-
-            <div className="mt-4 text-xs text-zinc-400">
-              Next: add per-ball overrides (surface/layout) to improve the sim.
-            </div>
-          </div>
+          </Surface>
         </div>
       </div>
     </>
