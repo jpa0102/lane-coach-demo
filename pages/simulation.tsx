@@ -144,7 +144,7 @@ export default function Simulation() {
   const currentErrors = validateInputs(inputs);
   const canSimulate = currentErrors.length === 0;
 
-  const onSimulate = () => {
+  function onSimulate() {
     const nextErrors = validateInputs(inputs);
     setErrors(nextErrors);
     if (nextErrors.length || !ball || !pattern) return;
@@ -168,7 +168,7 @@ export default function Simulation() {
     setResult(simulatePhysicsJSON(ball, pattern, bowler));
     setSubmittedInputs(inputs);
     setStale(false);
-  };
+  }
 
   return (
     <>
@@ -250,6 +250,7 @@ export default function Simulation() {
                     <label className="text-xs text-zinc-400">Breakpoint distance *</label>
                     <input className="lc-input mt-1" type="number" min={35} max={50} value={inputs.breakpointDistanceFt} onChange={(e) => setInput("breakpointDistanceFt", Number(e.target.value))} />
                   </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-70">
                   <div>
