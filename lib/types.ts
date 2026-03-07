@@ -51,6 +51,32 @@ export type Line = {
   targetBoard: number; // 0-39
 };
 
+export type BowlerInput = {
+  handedness: "right" | "left";
+  papXInches: number;
+  papYInches: number;
+  ballSpeedMph: number;
+  revRateRpm: number;
+  axisTiltDeg: number;
+  axisRotationDeg: number;
+  startingBoard: number;
+  targetBoard: number;
+  breakpointBoardIntent: number;
+  breakpointDistanceFt: number;
+  oilPatternType: "house" | "sport" | "specific";
+  laneSurface: "synthetic" | "wood";
+};
+
+export type PhysicsResult = {
+  skid_length_ft: number;
+  breakpoint_board: number;
+  entry_angle_degrees: number;
+  ball_path: Array<{ ft: number; board: number }>;
+  reaction_shape: "arc" | "skid-snap" | "skid-flip" | "straight";
+  pocket_entry: "brooklyn" | "light" | "flush" | "high";
+  recommendation: string;
+};
+
 export type SimResult = {
   path: { x: number; y: number }[]; // x=board, y=feet
   breakpoint: { board: number; distanceFt: number };
@@ -59,4 +85,5 @@ export type SimResult = {
     shape: "smooth" | "sharp";
     usedFallbackSpecs: boolean;
   };
+  physics: PhysicsResult;
 };
