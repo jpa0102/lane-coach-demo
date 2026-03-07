@@ -9,7 +9,6 @@ type Props = {
 };
 
 export function LaneViz({ a, b, labelA, labelB }: Props) {
-  // Lane: x=0..39 boards, y=0..60 feet
   const W = 560;
   const H = 820;
 
@@ -32,103 +31,48 @@ export function LaneViz({ a, b, labelA, labelB }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-soft">
+    <div className="lc-surface">
       <div className="flex items-center justify-between gap-3">
         <div className="text-sm">
-          <span className="font-semibold">Lane View</span>{" "}
-          <span className="text-zinc-400">(top-down)</span>
+          <span className="font-semibold">Lane View</span> <span className="text-zinc-400">(top-down)</span>
         </div>
-        <div className="text-xs text-zinc-400">y=0 foul line → y=60 pins</div>
+        <div className="text-xs text-zinc-400">0ft foul line → 60ft pins</div>
       </div>
 
-      <div className="mt-3 rounded-2xl overflow-hidden border border-white/10 bg-black/20">
-        <svg
-          width={W}
-          height={H}
-          style={{ width: "100%", height: "auto", display: "block" }}
-        >
+      <div className="mt-3 rounded-2xl overflow-hidden border border-cyan-300/20 bg-black/30">
+        <svg width={W} height={H} style={{ width: "100%", height: "auto", display: "block" }}>
           <defs>
             <linearGradient id="laneGlow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.06)" />
+              <stop offset="0%" stopColor="rgba(35,99,255,0.12)" />
               <stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
             </linearGradient>
           </defs>
 
           <rect x="0" y="0" width={W} height={H} rx="22" fill="url(#laneGlow)" />
-          <rect
-            x="26"
-            y="26"
-            width={W - 52}
-            height={H - 52}
-            rx="16"
-            fill="rgba(0,0,0,0.25)"
-            stroke="rgba(255,255,255,0.08)"
-          />
+          <rect x="26" y="26" width={W - 52} height={H - 52} rx="16" fill="rgba(0,0,0,0.32)" stroke="rgba(255,255,255,0.08)" />
 
-          {/* board guides */}
           {Array.from({ length: 6 }).map((_, i) => {
             const board = i * 8;
             const x = mapX(board);
-            return (
-              <line
-                key={i}
-                x1={x}
-                y1={26}
-                x2={x}
-                y2={H - 26}
-                stroke="rgba(255,255,255,0.06)"
-              />
-            );
+            return <line key={i} x1={x} y1={26} x2={x} y2={H - 26} stroke="rgba(255,255,255,0.06)" />;
           })}
 
-          {/* distance guides */}
           {[15, 30, 45, 60].map((ft) => {
             const y = mapY(ft);
-            return (
-              <line
-                key={ft}
-                x1={26}
-                y1={y}
-                x2={W - 26}
-                y2={y}
-                stroke="rgba(255,255,255,0.06)"
-              />
-            );
+            return <line key={ft} x1={26} y1={y} x2={W - 26} y2={y} stroke="rgba(255,255,255,0.06)" />;
           })}
 
-          {/* path A */}
           {a && (
             <>
-              <path
-                d={pathD(a)}
-                fill="none"
-                stroke="rgba(255,255,255,0.9)"
-                strokeWidth="3.2"
-              />
-              <circle
-                cx={mapX(a.breakpoint.board)}
-                cy={mapY(a.breakpoint.distanceFt)}
-                r="6.5"
-                fill="rgba(255,255,255,0.95)"
-              />
+              <path d={pathD(a)} fill="none" stroke="rgba(255,255,255,0.95)" strokeWidth="3.2" />
+              <circle cx={mapX(a.breakpoint.board)} cy={mapY(a.breakpoint.distanceFt)} r="6.5" fill="rgba(255,255,255,0.95)" />
             </>
           )}
 
-          {/* path B */}
           {b && (
             <>
-              <path
-                d={pathD(b)}
-                fill="none"
-                stroke="rgba(34,211,238,0.95)"
-                strokeWidth="3.2"
-              />
-              <circle
-                cx={mapX(b.breakpoint.board)}
-                cy={mapY(b.breakpoint.distanceFt)}
-                r="6.5"
-                fill="rgba(34,211,238,0.95)"
-              />
+              <path d={pathD(b)} fill="none" stroke="rgba(34,211,238,0.95)" strokeWidth="3.2" />
+              <circle cx={mapX(b.breakpoint.board)} cy={mapY(b.breakpoint.distanceFt)} r="6.5" fill="rgba(34,211,238,0.95)" />
             </>
           )}
         </svg>
@@ -141,7 +85,9 @@ export function LaneViz({ a, b, labelA, labelB }: Props) {
             <span className="text-zinc-300">{labelA ?? "Ball A"}</span>
           </div>
           <div className="mt-1 text-zinc-400">
-            {a ? `BP ${a.breakpoint.board}@${a.breakpoint.distanceFt}ft • ${a.notes.readPhase} • ${a.notes.shape}` : "Select Ball A"}
+            {a
+              ? `BP ${a.breakpoint.board}@${a.breakpoint.distanceFt}ft • ${a.notes.readPhase} • ${a.notes.shape}`
+              : "Select Ball A"}
           </div>
         </div>
 
@@ -151,7 +97,9 @@ export function LaneViz({ a, b, labelA, labelB }: Props) {
             <span className="text-zinc-300">{labelB ?? "Ball B"}</span>
           </div>
           <div className="mt-1 text-zinc-400">
-            {b ? `BP ${b.breakpoint.board}@${b.breakpoint.distanceFt}ft • ${b.notes.readPhase} • ${b.notes.shape}` : "Select Ball B (optional)"}
+            {b
+              ? `BP ${b.breakpoint.board}@${b.breakpoint.distanceFt}ft • ${b.notes.readPhase} • ${b.notes.shape}`
+              : "Select Ball B (optional)"}
           </div>
         </div>
       </div>
