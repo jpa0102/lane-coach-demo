@@ -14,6 +14,9 @@ const W = 460;
 const H = 900;
 const PAD_X = 34;
 const PAD_Y = 40;
+export function LaneViz({ a, b, labelA, labelB }: Props) {
+  const W = 560;
+  const H = 820;
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));

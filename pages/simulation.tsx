@@ -250,7 +250,6 @@ export default function Simulation() {
                     <label className="text-xs text-zinc-400">Breakpoint distance *</label>
                     <input className="lc-input mt-1" type="number" min={35} max={50} value={inputs.breakpointDistanceFt} onChange={(e) => setInput("breakpointDistanceFt", Number(e.target.value))} />
                   </div>
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 opacity-70">
                   <div>
@@ -327,7 +326,7 @@ export default function Simulation() {
                 </Surface>
               )}
             </div>
-          </div>
+          </>
         )}
       </div>
     </>
