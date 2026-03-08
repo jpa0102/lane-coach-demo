@@ -332,6 +332,8 @@ export default function Simulation() {
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Calculated breakpoint</div><div>{result.breakpoint_board} @ {result.breakpoint_distance_ft}ft</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Reaction</div><div>{result.reaction_shape} • {shapeNote}</div></div>
                     <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Read + entry</div><div>{readPhase} read • {result.pocket_entry}</div></div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Final board at pins</div><div>{result.final_board_at_pins}</div></div>
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-3"><div className="text-xs text-zinc-500">Shot classification</div><div>{result.shot_classification}</div></div>
                   </div>
 
                   <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-4">

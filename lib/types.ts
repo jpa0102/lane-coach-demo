@@ -69,10 +69,12 @@ export type PhysicsResult = {
   breakpoint_board: number;
   breakpoint_distance_ft: number;
   roll_start_ft: number;
+  final_board_at_pins: number;
   entry_angle_degrees: number;
   ball_path: Array<{ ft: number; board: number }>;
   reaction_shape: "arc" | "skid-snap" | "skid-flip" | "straight";
   pocket_entry: "brooklyn" | "light" | "flush" | "high";
+  shot_classification: "flush" | "light pocket" | "high pocket" | "through the nose" | "Brooklyn" | "miss right" | "miss left" | "no recovery" | "rolled out" | "skid too long";
   recommendation: string;
 };
 

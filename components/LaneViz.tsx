@@ -123,12 +123,22 @@ export function LaneViz({ result, handedness = "right", startBoard, targetBoard 
               <text x={mapX(pocketBoard) + 9} y={mapY(60) - 6} fontSize="11" fill="rgba(167,243,208,0.95)">
                 Pocket
               </text>
+
+              <circle cx={mapX(result.final_board_at_pins)} cy={mapY(60)} r="4.5" fill="rgba(244,114,182,0.95)" />
+              <text x={mapX(result.final_board_at_pins) + 9} y={mapY(60) + 10} fontSize="10" fill="rgba(251,207,232,0.95)">
+                Impact
+              </text>
             </>
           )}
 
           {typeof startBoard === "number" && (
             <text x={mapX(startBoard) + 8} y={mapY(1) - 8} fontSize="11" fill="rgba(255,255,255,0.8)">
               Start
+            </text>
+          )}
+          {typeof targetBoard === "number" && (
+            <text x={mapX(targetBoard) + 8} y={mapY(15) - 8} fontSize="11" fill="rgba(255,255,255,0.75)">
+              Target
             </text>
           )}
           {typeof targetBoard === "number" && (
