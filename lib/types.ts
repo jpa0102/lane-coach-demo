@@ -47,8 +47,35 @@ export type Pattern = {
 };
 
 export type Line = {
-  feetBoard: number;   // 0-39
+  feetBoard: number; // 0-39
   targetBoard: number; // 0-39
+};
+
+export type BowlerInput = {
+  handedness: "right" | "left";
+  papXInches: number;
+  papYInches: number;
+  ballSpeedMph: number;
+  revRateRpm: number;
+  startingBoard: number;
+  targetBoard: number;
+  oilPatternType: "house" | "sport" | "specific";
+  laneSurface: "synthetic" | "wood";
+};
+
+export type PhysicsResult = {
+  skid_length_ft: number;
+  skid_end_ft: number;
+  breakpoint_board: number;
+  breakpoint_distance_ft: number;
+  roll_start_ft: number;
+  final_board_at_pins: number;
+  entry_angle_degrees: number;
+  ball_path: Array<{ ft: number; board: number }>;
+  reaction_shape: "arc" | "skid-snap" | "skid-flip" | "straight";
+  pocket_entry: "brooklyn" | "light" | "flush" | "high";
+  shot_classification: "flush" | "light pocket" | "high pocket" | "through the nose" | "Brooklyn" | "miss right" | "miss left" | "no recovery" | "rolled out" | "skid too long";
+  recommendation: string;
 };
 
 export type SimResult = {
@@ -59,4 +86,5 @@ export type SimResult = {
     shape: "smooth" | "sharp";
     usedFallbackSpecs: boolean;
   };
+  physics: PhysicsResult;
 };
