@@ -124,3 +124,52 @@ export function simulatePath(
     physics,
   };
 }
+
+function mapSpeedClass(speedClass: "slow" | "med" | "fast" | undefined) {
+  return speedClass === "fast" ? 20 : speedClass === "slow" ? 15.5 : 17.5;
+}
+
+function mapRevClass(revClass: "low" | "med" | "high" | undefined) {
+  return revClass === "high" ? 420 : revClass === "low" ? 220 : 320;
+}
+
+export function simulatePath(
+  ball: BallFlat,
+  pattern: Pattern,
+  line: Line,
+  opts?: { speedClass?: "slow" | "med" | "fast"; revClass?: "low" | "med" | "high" }
+): SimResult {
+  const bowler: BowlerInput = {
+    handedness: "right",
+    papXInches: 4.5,
+    papYInches: 0.5,
+    ballSpeedMph: mapSpeedClass(opts?.speedClass),
+    revRateRpm: mapRevClass(opts?.revClass),
+    startingBoard: clamp(line.feetBoard, 0, 39),
+    targetBoard: clamp(line.targetBoard, 0, 39),
+    oilPatternType: pattern.ratio === "high" ? "house" : "sport",
+    laneSurface: "synthetic"
+  };
+
+  const physics = createPhysicsModel(ball, pattern, bowler);
+  const usedFallbackSpecs = ballDynamics(ball).usedFallbackSpecs;
+
+  const readPhase =
+    physics.breakpoint_distance_ft <= 39 ? "early" : physics.breakpoint_distance_ft <= 45 ? "mid" : "late";
+
+  const shape = physics.reaction_shape === "arc" || physics.reaction_shape === "straight" ? "smooth" : "sharp";
+
+  return {
+    path: physics.ball_path.map((p) => ({ x: p.board, y: p.ft })),
+    breakpoint: {
+      board: Math.round(physics.breakpoint_board),
+      distanceFt: Math.round(physics.breakpoint_distance_ft)
+    },
+    notes: { readPhase, shape, usedFallbackSpecs },
+    physics
+  };
+}
+
+export function simulatePhysicsJSON(ball: BallFlat, pattern: Pattern, bowler: BowlerInput): PhysicsResult {
+  return createPhysicsModel(ball, pattern, bowler);
+}
