@@ -4,15 +4,15 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
 function parseFactoryGrit(factoryFinish: string | null): number | null {
   if (!factoryFinish) return null;
   const m = factoryFinish.match(/(\d{3,4})/);
-  if (!m) return null;
-  return Number(m[1]);
+  return m ? Number(m[1]) : null;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = clamp((x - edge0) / Math.max(edge1 - edge0, 0.001), 0, 1);
+  return t * t * (3 - 2 * t);
 }
 
 function ballDynamics(ball: BallFlat) {
@@ -26,100 +26,102 @@ function ballDynamics(ball: BallFlat) {
   const coverTraction =
     cover.includes("solid") ? 1.0 :
     cover.includes("hybrid") ? 0.88 :
-    cover.includes("pearl") ? 0.76 :
-    cover.includes("urethane") ? 0.83 :
-    cover.includes("plastic") ? 0.45 : 0.8;
+    cover.includes("pearl") ? 0.74 :
+    cover.includes("urethane") ? 0.82 :
+    cover.includes("plastic") ? 0.42 : 0.8;
 
+  const coreStrength = core.includes("asym") ? 1 : core.includes("sym") ? 0.86 : 0.9;
   const rgEarlyRoll = clamp((2.59 - rg) / (2.59 - 2.43), 0, 1);
   const flarePotential = clamp((diff - 0.015) / (0.06 - 0.015), 0, 1);
   const surfaceFriction = clamp((4000 - grit) / 3500, 0, 1);
-  const coreStrength = core.includes("asym") ? 1 : core.includes("sym") ? 0.85 : 0.9;
 
   const usedFallbackSpecs =
     ball.rg == null || ball.differential == null || !ball.coverstock_type || !ball.core_type || !ball.factory_finish;
 
-  return { coverTraction, rgEarlyRoll, flarePotential, surfaceFriction, coreStrength, usedFallbackSpecs };
+  return { coverTraction, coreStrength, rgEarlyRoll, flarePotential, surfaceFriction, usedFallbackSpecs };
 }
 
 function patternFactors(pattern: Pattern, oilPatternType: BowlerInput["oilPatternType"]) {
-  const volumeFactor = pattern.volume === "high" ? 1.14 : pattern.volume === "low" ? 0.9 : 1;
+  const volumeFactor = pattern.volume === "high" ? 1.15 : pattern.volume === "low" ? 0.9 : 1;
   const ratioFactor = pattern.ratio === "high" ? 1.08 : pattern.ratio === "low" ? 0.92 : 1;
-  const styleFactor = oilPatternType === "sport" ? 1.07 : oilPatternType === "house" ? 0.95 : 1;
+  const styleFactor = oilPatternType === "sport" ? 1.08 : oilPatternType === "house" ? 0.95 : 1;
   return { volumeFactor, ratioFactor, styleFactor };
 }
 
-function derivePocketBoard(handedness: "right" | "left") {
+function pocketBoardForHand(handedness: "right" | "left") {
   return handedness === "right" ? 17 : 22;
-}
-
-function deriveBreakpointTarget(targetBoard: number, handedness: "right" | "left") {
-  const delta = handedness === "right" ? -7 : 7;
-  return clamp(targetBoard + delta, 1, 38);
 }
 
 function createPhysicsModel(ball: BallFlat, pattern: Pattern, bowler: BowlerInput): PhysicsResult {
   const bd = ballDynamics(ball);
   const pf = patternFactors(pattern, bowler.oilPatternType);
 
-  const speed = clamp(bowler.ballSpeedMph, 10, 24);
-  const revs = clamp(bowler.revRateRpm, 120, 650);
+  const speedNorm = clamp((bowler.ballSpeedMph - 10) / 14, 0, 1);
+  const revNorm = clamp((bowler.revRateRpm - 150) / 450, 0, 1);
 
-  const speedNorm = clamp((speed - 10) / 14, 0, 1);
-  const revNorm = clamp((revs - 150) / 450, 0, 1);
+  const tractionStrength =
+    bd.coverTraction * 0.34 + bd.surfaceFriction * 0.2 + bd.flarePotential * 0.2 + bd.rgEarlyRoll * 0.12 + bd.coreStrength * 0.14;
 
-  // 3-phase model:
-  // - skid through heads/oil, influenced by speed + oil volume
-  // - hook transition near pattern length + ~8ft
-  // - roll through pocket
-  const frictionStrength =
-    bd.coverTraction * 0.42 + bd.surfaceFriction * 0.2 + bd.flarePotential * 0.2 + bd.rgEarlyRoll * 0.08 + bd.coreStrength * 0.1;
-
-  const skidLength = clamp(
-    pattern.lengthFt + 1.6 + speedNorm * 3.2 + pf.volumeFactor * 1.6 - revNorm * 2.4 - frictionStrength * 2.3,
+  const skidEndFt = clamp(
+    pattern.lengthFt + 1.2 + speedNorm * 3.2 + pf.volumeFactor * 1.8 - revNorm * 2.6 - tractionStrength * 2.3,
     16,
-    48
+    47
   );
 
-  const hookStartFt = clamp(pattern.lengthFt + 8 + speedNorm * 1.5 - frictionStrength * 1.8 - revNorm * 1.2, 30, 50);
-
-  const hookShape = clamp(0.65 + revNorm * 0.28 + frictionStrength * 0.3 - speedNorm * 0.2 + (pf.ratioFactor - 1) * 0.2, 0.45, 1.2);
-
-  const pocketBoard = derivePocketBoard(bowler.handedness);
-  const start = clamp(bowler.startingBoard, 1, 39);
-  const target = clamp(bowler.targetBoard, 1, 39);
-
-  const baseBreakpoint = deriveBreakpointTarget(target, bowler.handedness);
-  const breakpointBoard = clamp(
-    baseBreakpoint + (bowler.handedness === "right" ? -1 : 1) * (hookShape * 0.8 - pf.ratioFactor * 0.2),
-    1,
-    38
+  const hookPeakFt = clamp(
+    pattern.lengthFt + 8 + speedNorm * 1.2 - revNorm * 1.3 - tractionStrength * 1.2,
+    33,
+    50
   );
 
-  const breakpointDistance = clamp(hookStartFt + 1.6 + hookShape * 1.6 - frictionStrength * 0.8, hookStartFt - 1, 52);
+  const rollStartFt = clamp(
+    hookPeakFt + 4.8 - (revNorm * 1.1 + tractionStrength * 0.8),
+    hookPeakFt + 2,
+    56
+  );
 
-  const path: Array<{ ft: number; board: number }> = [];
+  const hookAmplitude = clamp(
+    6.0 + revNorm * 2.1 + tractionStrength * 2.2 - speedNorm * 1.6 + (pf.ratioFactor - 1) * 2,
+    3.5,
+    10.5
+  );
+
+  const startBoard = clamp(bowler.startingBoard, 1, 39);
+  const targetBoard = clamp(bowler.targetBoard, 1, 39);
+  const pocketBoard = pocketBoardForHand(bowler.handedness);
+  const handDir = bowler.handedness === "right" ? -1 : 1;
+
+
+  const points: Array<{ ft: number; board: number }> = [];
 
   for (let ft = 0; ft <= 60; ft += 1) {
-    let board: number;
+    const launchBlend = smoothstep(0, 15, ft);
+    const baseLine = startBoard + (targetBoard - startBoard) * launchBlend;
 
-    if (ft <= skidLength) {
-      const t = ft / Math.max(skidLength, 1);
-      const towardTarget = Math.min(t, 15 / Math.max(skidLength, 15));
-      board = lerp(start, target, towardTarget);
-    } else if (ft <= breakpointDistance) {
-      const t = (ft - skidLength) / Math.max(breakpointDistance - skidLength, 1);
-      const eased = Math.pow(t, 1.35);
-      board = lerp(target, breakpointBoard, eased);
-    } else {
-      const t = (ft - breakpointDistance) / Math.max(60 - breakpointDistance, 1);
-      const eased = 1 - Math.pow(1 - t, 1.8);
-      board = lerp(breakpointBoard, pocketBoard, eased);
-    }
+    const hookRamp = smoothstep(skidEndFt, hookPeakFt, ft);
+    const rollDamp = 1 - smoothstep(rollStartFt, 60, ft);
 
-    path.push({ ft, board: clamp(board, 0, 39) });
+    const lateralOffset = handDir * hookAmplitude * hookRamp * rollDamp;
+
+    const rollForward = smoothstep(rollStartFt, 60, ft);
+    const pocketBlend = rollForward * (0.6 + bd.coreStrength * 0.25);
+
+    const board = baseLine + lateralOffset + (pocketBoard - (targetBoard + lateralOffset)) * pocketBlend;
+    points.push({ ft, board: clamp(board, 0, 39) });
   }
 
-  const pocketDelta = path[path.length - 1].board - pocketBoard;
+  let breakpoint = points[0];
+  let maxDelta = -1;
+  for (let i = 1; i < points.length; i += 1) {
+    const delta = Math.abs(points[i].board - points[i - 1].board);
+    if (delta > maxDelta) {
+      maxDelta = delta;
+      breakpoint = points[i];
+    }
+  }
+
+  const finalBoard = points[points.length - 1].board;
+  const pocketDelta = finalBoard - pocketBoard;
   const pocketEntry: PhysicsResult["pocket_entry"] =
     Math.abs(pocketDelta) <= 0.75
       ? "flush"
@@ -135,32 +137,34 @@ function createPhysicsModel(ball: BallFlat, pattern: Pattern, bowler: BowlerInpu
             ? "brooklyn"
             : "light";
 
-  const entryAngle = clamp(2.3 + hookShape * 2.6 + revNorm * 1.2 - speedNorm * 0.9, 1.2, 7.8);
+  const entryAngle = clamp(2.1 + hookAmplitude * 0.38 + revNorm * 1.1 - speedNorm * 0.8, 1.2, 7.8);
 
   const reactionShape: PhysicsResult["reaction_shape"] =
-    hookShape > 1.03 && bd.coverTraction < 0.83
+    hookAmplitude > 8.2 && bd.coverTraction < 0.82
       ? "skid-flip"
-      : hookShape > 0.84
+      : hookAmplitude > 6.8
         ? "skid-snap"
-        : bd.coverTraction < 0.55
+        : bd.coverTraction < 0.52
           ? "straight"
           : "arc";
 
   const recommendation =
     pocketEntry === "flush"
-      ? "Great match-up. Stay with this line and monitor transition as fronts go away."
+      ? "Great match-up. Stay with this line and watch transition as fronts go away."
       : pocketEntry === "high"
-        ? "Reading too early. Increase speed slightly, move feet inward, or switch to a cleaner cover."
+        ? "Ball is reading too early. Add speed or move your laydown deeper to delay hook."
         : pocketEntry === "light"
-          ? "Not finishing enough. Reduce speed a touch, move feet toward friction, or use more traction."
-          : "Crossing over. Reduce hook shape by moving line deeper or choosing a smoother motion ball.";
+          ? "Ball is not finishing enough. Reduce speed slightly or move toward friction for stronger entry."
+          : "Crossing over too much. Blend the pattern with a softer line or smoother ball motion.";
 
   return {
-    skid_length_ft: Number(skidLength.toFixed(1)),
-    breakpoint_board: Number(breakpointBoard.toFixed(1)),
-    breakpoint_distance_ft: Number(breakpointDistance.toFixed(1)),
+    skid_length_ft: Number(skidEndFt.toFixed(1)),
+    skid_end_ft: Number(skidEndFt.toFixed(1)),
+    breakpoint_board: Number(breakpoint.board.toFixed(1)),
+    breakpoint_distance_ft: Number(breakpoint.ft.toFixed(1)),
+    roll_start_ft: Number(rollStartFt.toFixed(1)),
     entry_angle_degrees: Number(entryAngle.toFixed(2)),
-    ball_path: path.map((p) => ({ ft: p.ft, board: Number(p.board.toFixed(2)) })),
+    ball_path: points.map((p) => ({ ft: p.ft, board: Number(p.board.toFixed(2)) })),
     reaction_shape: reactionShape,
     pocket_entry: pocketEntry,
     recommendation

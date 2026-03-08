@@ -109,6 +109,16 @@ export function LaneViz({ result, handedness = "right", startBoard, targetBoard 
                 BP
               </text>
 
+              <circle cx={mapX(result.ball_path.find((p) => p.ft >= result.skid_end_ft)?.board ?? result.ball_path[0].board)} cy={mapY(result.skid_end_ft)} r="5" fill="rgba(250,204,21,0.95)" />
+              <text x={mapX(result.ball_path.find((p) => p.ft >= result.skid_end_ft)?.board ?? result.ball_path[0].board) + 9} y={mapY(result.skid_end_ft) - 7} fontSize="10" fill="rgba(253,224,71,0.95)">
+                Skid End
+              </text>
+
+              <circle cx={mapX(result.ball_path.find((p) => p.ft >= result.roll_start_ft)?.board ?? result.ball_path[result.ball_path.length - 1].board)} cy={mapY(result.roll_start_ft)} r="5" fill="rgba(147,197,253,0.95)" />
+              <text x={mapX(result.ball_path.find((p) => p.ft >= result.roll_start_ft)?.board ?? result.ball_path[result.ball_path.length - 1].board) + 9} y={mapY(result.roll_start_ft) - 7} fontSize="10" fill="rgba(191,219,254,0.95)">
+                Roll
+              </text>
+
               <circle cx={mapX(pocketBoard)} cy={mapY(60)} r="6" fill="rgba(16,185,129,0.95)" />
               <text x={mapX(pocketBoard) + 9} y={mapY(60) - 6} fontSize="11" fill="rgba(167,243,208,0.95)">
                 Pocket
@@ -119,6 +129,11 @@ export function LaneViz({ result, handedness = "right", startBoard, targetBoard 
           {typeof startBoard === "number" && (
             <text x={mapX(startBoard) + 8} y={mapY(1) - 8} fontSize="11" fill="rgba(255,255,255,0.8)">
               Start
+            </text>
+          )}
+          {typeof targetBoard === "number" && (
+            <text x={mapX(targetBoard) + 8} y={mapY(15) - 8} fontSize="11" fill="rgba(255,255,255,0.75)">
+              Target
             </text>
           )}
           {typeof targetBoard === "number" && (

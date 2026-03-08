@@ -337,7 +337,7 @@ export default function Simulation() {
                   <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-500/5 p-4">
                     <div className="text-xs text-cyan-200">Quick reaction summary</div>
                     <div className="mt-1 text-sm text-zinc-200">
-                      Skid: {result.skid_length_ft}ft • Entry angle: {result.entry_angle_degrees}° • Breakpoint: {result.breakpoint_board} @ {result.breakpoint_distance_ft}ft
+                      Skid end: {result.skid_end_ft}ft • Roll start: {result.roll_start_ft}ft • Entry angle: {result.entry_angle_degrees}° • Breakpoint: {result.breakpoint_board} @ {result.breakpoint_distance_ft}ft
                     </div>
                     <div className="mt-2 text-sm text-zinc-300">{result.recommendation}</div>
                   </div>
