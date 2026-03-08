@@ -136,6 +136,15 @@ export function LaneViz({ result, handedness = "right", startBoard, targetBoard 
               Target
             </text>
           )}
+          {typeof targetBoard === "number" && (
+            <text x={mapX(targetBoard) + 8} y={mapY(15) - 8} fontSize="11" fill="rgba(255,255,255,0.75)">
+              Target
+            </text>
+          )}
+
+          {typeof startBoard === "number" && <text x={mapX(startBoard) + 8} y={mapY(1) - 8} fontSize="11" fill="rgba(255,255,255,0.8)">Start</text>}
+          {typeof targetBoard === "number" && <text x={mapX(targetBoard) + 8} y={mapY(15) - 8} fontSize="11" fill="rgba(255,255,255,0.75)">Target</text>}
+          {typeof breakpointBoard === "number" && <text x={mapX(breakpointBoard) + 8} y={mapY((breakpointDistanceFt ?? 45)) + 14} fontSize="11" fill="rgba(255,210,210,0.95)">Intent BP</text>}
         </svg>
       </div>
 
